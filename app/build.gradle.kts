@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.google.services)
+
 }
 
 android {
@@ -37,6 +38,11 @@ android {
 }
 
 dependencies {
+    // Import the Firebase BoM
+    implementation(platform(libs.firebase.bom.v33150))
+    // When using the BoM, don't specify versions in Firebase dependencies
+    implementation(libs.google.firebase.analytics)
+
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
