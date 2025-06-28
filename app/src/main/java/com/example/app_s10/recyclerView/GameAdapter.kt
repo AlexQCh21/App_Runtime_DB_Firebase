@@ -16,7 +16,7 @@ class GameAdapter(
     private val onEditClick: (Game) -> Unit
 ) : RecyclerView.Adapter<GameAdapter.GameViewHolder>() {
 
-    private var originalGames: List<Game> = games.toList() // copia original para filtrar
+    private var originalGames: List<Game> = games.toList()
 
     inner class GameViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvTitle: TextView = itemView.findViewById(R.id.tvGameTitle)

@@ -49,7 +49,7 @@ class FormularioDialogFragment : DialogFragment() {
         val btnGuardar = view.findViewById<Button>(R.id.btnSaveGame)
         initComponenets(view)
 
-        // Set datos si estamos editando
+
         gameToEdit?.let { game ->
             etGameTitle.setText(game.title)
             etGameGenre.setText(game.genre)
@@ -57,7 +57,7 @@ class FormularioDialogFragment : DialogFragment() {
             auto_platform.setText(game.platform)
             input_description.setText(game.description)
             cbxCompleted.isChecked = game.completed
-            input_release_date.setText("01/01/${game.releaseYear}") // Puedes formatear la fecha real si la tienes
+            input_release_date.setText("01/01/${game.releaseYear}")
         }
 
         btnGuardar.setOnClickListener {

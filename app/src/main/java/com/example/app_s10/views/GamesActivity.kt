@@ -83,7 +83,7 @@ class GamesActivity : AppCompatActivity() {
                 val dialog = FormularioDialogFragment()
 
                 val bundle = Bundle()
-                bundle.putParcelable("game", game) // Asegúrate de que Game implemente Parcelable
+                bundle.putParcelable("game", game)
                 dialog.arguments = bundle
 
                 dialog.show(supportFragmentManager, "FormularioDialog")
