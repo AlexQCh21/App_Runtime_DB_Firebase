@@ -11,13 +11,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.cardview.widget.CardView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.app_s10.utils.AuthManager
+import com.example.app_s10.views.FormularioDialogFragment
+import com.example.app_s10.views.LoginActivity
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 
 class MainActivity : AppCompatActivity() {
     
-    private lateinit var auth: FirebaseAuth
+    //private lateinit var auth: FirebaseAuth
+    private lateinit var authManager: AuthManager
     
     // Views
     private lateinit var tvWelcome: TextView
@@ -27,7 +32,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cardAchievements: CardView
     private lateinit var cardProfile: CardView
     private lateinit var cardSettings: CardView
-    
+    private lateinit var btn_add: FloatingActionButton
+
     companion object {
         private const val TAG = "MainActivity"
     }
@@ -38,10 +44,13 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         
         // Inicializar Firebase Auth
-        auth = FirebaseAuth.getInstance()
+        //auth = FirebaseAuth.getInstance()
+
+        // Inicializar AuthManager
+        authManager = AuthManager()
         
         // Verificar autenticación
-        val currentUser = auth.currentUser
+        val currentUser = authManager.getCurrentUser()
         if (currentUser == null) {
             // Usuario no autenticado, redirigir al login
             redirectToLogin()
@@ -57,7 +66,9 @@ class MainActivity : AppCompatActivity() {
         
         // Configurar listeners
         setupClickListeners()
-        
+
+
+
         Log.d(TAG, "MainActivity iniciado para usuario: ${currentUser.email}")
     }
     
@@ -66,6 +77,7 @@ class MainActivity : AppCompatActivity() {
         tvWelcome = findViewById(R.id.tv_welcome)
         tvUserEmail = findViewById(R.id.tv_user_email)
         btnLogout = findViewById(R.id.btn_logout)
+        btn_add = findViewById(R.id.fbtn_add_game)
         cardStats = findViewById(R.id.card_stats)
         cardAchievements = findViewById(R.id.card_achievements)
         cardProfile = findViewById(R.id.card_profile)
@@ -108,6 +120,13 @@ class MainActivity : AppCompatActivity() {
         btnLogout.setOnClickListener {
             showLogoutConfirmationDialog()
         }
+
+        //Botón para abrir el formulario
+        btn_add.setOnClickListener {
+            val dialog = FormularioDialogFragment()
+            dialog.show(supportFragmentManager, "FormularioDialog")
+
+        }
         
         // Cards de navegación (placeholder por ahora)
         cardStats.setOnClickListener {
@@ -140,7 +159,7 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun performLogout() {
-        auth.signOut()
+        authManager.logout()
         Toast.makeText(this, getString(R.string.logout_success), Toast.LENGTH_SHORT).show()
         Log.d(TAG, "Usuario desconectado")
         redirectToLogin()
@@ -166,7 +185,7 @@ class MainActivity : AppCompatActivity() {
     }
     
     private fun sendEmailVerification() {
-        val user = auth.currentUser
+        val user = authManager.getCurrentUser()
         user?.sendEmailVerification()
             ?.addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -189,7 +208,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         // Verificar autenticación cada vez que la actividad se vuelve visible
-        val currentUser = auth.currentUser
+        val currentUser = authManager.getCurrentUser()
         if (currentUser == null) {
             Log.d(TAG, "Usuario no autenticado en onStart, redirigiendo...")
             redirectToLogin()

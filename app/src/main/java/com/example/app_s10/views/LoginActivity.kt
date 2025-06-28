@@ -1,4 +1,4 @@
-package com.example.app_s10
+package com.example.app_s10.views
 
 import android.content.Intent
 import android.os.Bundle
@@ -14,10 +14,14 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import android.widget.ProgressBar
 import android.widget.TextView
+import com.example.app_s10.MainActivity
+import com.example.app_s10.R
+import com.example.app_s10.utils.AuthManager
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
+    private lateinit var authManager: AuthManager
     
     // Views del layout
     private lateinit var inputLayoutEmail: TextInputLayout
@@ -36,6 +40,7 @@ class LoginActivity : AppCompatActivity() {
     
     companion object {
         private const val TAG = "LoginActivity"
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,6 +49,9 @@ class LoginActivity : AppCompatActivity() {
         
         // Inicializar Firebase Auth
         auth = FirebaseAuth.getInstance()
+
+        //Iniciar el AuthManager
+        authManager = AuthManager()
         
         // Inicializar views
         initializeViews()
@@ -66,6 +74,8 @@ class LoginActivity : AppCompatActivity() {
         tvGuestLogin = findViewById(R.id.tv_guest_login)
         progressBar = findViewById(R.id.progress_bar)
         tvStatus = findViewById(R.id.tv_status)
+
+
     }
     
     private fun setupClickListeners() {
@@ -91,41 +101,40 @@ class LoginActivity : AppCompatActivity() {
     }
     
     private fun checkCurrentUser() {
-        val currentUser = auth.currentUser
-        if (currentUser != null) {
-            Log.d(TAG, "Usuario ya autenticado: ${currentUser.email}")
-            navigateToMainActivity(currentUser)
+        val message = authManager.checkCurrentUser()
+        if (message != null) {
+            Log.d(TAG, message)
+            navigateToMainActivity(authManager.getCurrentUser())
         }
     }
-    
+
     private fun performLogin() {
         val email = etEmail.text.toString().trim()
         val password = etPassword.text.toString().trim()
-        
+
         // Validar campos
         if (!validateInput(email, password)) {
             return
         }
-        
+
         showLoading(true)
         updateStatus(getString(R.string.loading))
-        
-        auth.signInWithEmailAndPassword(email, password)
-            .addOnCompleteListener(this) { task ->
-                showLoading(false)
-                
-                if (task.isSuccessful) {
-                    Log.d(TAG, "Login exitoso")
-                    val user = auth.currentUser
-                    showSuccessMessage(getString(R.string.login_success))
-                    navigateToMainActivity(user)
-                } else {
-                    Log.w(TAG, "Login falló", task.exception)
-                    handleAuthError(task.exception)
-                }
+
+        authManager.signInUser(email, password) { success, user, error ->
+            showLoading(false)
+
+            if (success && user != null) {
+                Log.d(TAG, "Login exitoso")
+                showSuccessMessage(getString(R.string.login_success))
+                navigateToMainActivity(user)
+            } else {
+                Log.w(TAG, "Login falló: $error")
+                handleAuthError(Exception(error))
             }
+        }
     }
-    
+
+
     private fun performRegister() {
         val email = etEmail.text.toString().trim()
         val password = etPassword.text.toString().trim()
@@ -143,25 +152,21 @@ class LoginActivity : AppCompatActivity() {
         
         showLoading(true)
         updateStatus(getString(R.string.loading))
-        
-        auth.createUserWithEmailAndPassword(email, password)
-            .addOnCompleteListener(this) { task ->
-                showLoading(false)
-                
-                if (task.isSuccessful) {
-                    Log.d(TAG, "Registro exitoso")
-                    val user = auth.currentUser
-                    showSuccessMessage(getString(R.string.register_success))
-                    
-                    // Enviar email de verificación
-                    sendEmailVerification(user)
-                    
-                    navigateToMainActivity(user)
-                } else {
-                    Log.w(TAG, "Registro falló", task.exception)
-                    handleAuthError(task.exception)
-                }
+
+        // Usar AuthManager
+        authManager.signUpUser(email, password) { success, user, error ->
+            showLoading(false)
+
+            if (success && user != null) {
+                Log.d(TAG, "Registro exitoso")
+                showSuccessMessage(getString(R.string.register_success))
+                sendEmailVerification(user)
+                navigateToMainActivity(user)
+            } else {
+                Log.w(TAG, "Registro falló: $error")
+                handleAuthError(Exception(error))
             }
+        }
     }
     
     private fun validateInput(email: String, password: String): Boolean {
@@ -205,57 +210,62 @@ class LoginActivity : AppCompatActivity() {
         showErrorMessage(errorMessage)
         updateStatus("")
     }
-    
+
     private fun showForgotPasswordDialog() {
         val email = etEmail.text.toString().trim()
-        
+
         if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
             showErrorMessage(getString(R.string.error_invalid_email))
             return
         }
-        
+
         showLoading(true)
         updateStatus("Enviando correo de recuperación...")
-        
-        auth.sendPasswordResetEmail(email)
-            .addOnCompleteListener { task ->
-                showLoading(false)
-                
-                if (task.isSuccessful) {
-                    showSuccessMessage(getString(R.string.auth_password_reset_sent))
-                    updateStatus("")
-                } else {
-                    showErrorMessage("Error al enviar correo de recuperación")
-                    updateStatus("")
-                }
+
+        authManager.sendPasswordReset(email) { success, error ->
+            showLoading(false)
+
+            if (success) {
+                showSuccessMessage(getString(R.string.auth_password_reset_sent))
+                updateStatus("")
+            } else {
+                showErrorMessage(error ?: "Error desconocido")
+                updateStatus("")
             }
+        }
     }
-    
+
+
     private fun sendEmailVerification(user: FirebaseUser?) {
-        user?.sendEmailVerification()
-            ?.addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    Log.d(TAG, "Email de verificación enviado")
-                    showSuccessMessage(getString(R.string.auth_verification_email_sent))
-                }
+        authManager.sendEmailVerification(user) { success, error ->
+            if (success) {
+                Log.d(TAG, "Email de verificación enviado")
+                showSuccessMessage(getString(R.string.auth_verification_email_sent))
+            } else {
+                Log.w(TAG, "Fallo al enviar verificación: $error")
+                showErrorMessage(error ?: "Error desconocido")
             }
+        }
     }
-    
+
+
     private fun proceedAsGuest() {
-        auth.signInAnonymously()
-            .addOnCompleteListener(this) { task ->
-                if (task.isSuccessful) {
-                    Log.d(TAG, "Login anónimo exitoso")
-                    val user = auth.currentUser
-                    showSuccessMessage("¡Bienvenido, invitado!")
-                    navigateToMainActivity(user)
-                } else {
-                    Log.w(TAG, "Login anónimo falló", task.exception)
-                    showErrorMessage("Error al continuar como invitado")
-                }
+        showLoading(true)
+        authManager.signInAnonymously { success, user, error ->
+            showLoading(false)
+
+            if (success && user != null) {
+                Log.d(TAG, "Login anónimo exitoso")
+                showSuccessMessage("¡Bienvenido, invitado!")
+                navigateToMainActivity(user)
+            } else {
+                Log.w(TAG, "Login anónimo falló: $error")
+                showErrorMessage("Error al continuar como invitado")
             }
+        }
     }
-    
+
+
     private fun toggleMode() {
         isLoginMode = !isLoginMode
         
@@ -302,5 +312,10 @@ class LoginActivity : AppCompatActivity() {
     
     private fun showErrorMessage(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+    }
+
+    //Obtener el user autentificado
+    fun getCurrentUser():FirebaseUser?{
+        return auth.currentUser
     }
 }
