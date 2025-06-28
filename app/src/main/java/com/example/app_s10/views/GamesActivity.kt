@@ -1,6 +1,8 @@
 package com.example.app_s10.views
 
 import android.os.Bundle
+import android.widget.EditText
+import androidx.appcompat.widget.SearchView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
@@ -13,11 +15,17 @@ import com.example.app_s10.model.Game
 import com.example.app_s10.recyclerView.GameAdapter
 import com.example.app_s10.utils.RealTimeManager
 import kotlinx.coroutines.launch
+import android.text.TextWatcher
+import android.text.Editable
+import android.widget.ImageView
+
 
 class GamesActivity : AppCompatActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var gameAdapter: GameAdapter
     private var gameList: List<Game> = emptyList()
+    private lateinit var searchView: SearchView
+    private lateinit var btnRegresar: ImageView
 
     private lateinit var realTimeManager: RealTimeManager
 
@@ -30,12 +38,14 @@ class GamesActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-
+        btnRegresar = findViewById(R.id.regresar)
         recyclerView = findViewById(R.id.my_games)
         realTimeManager = RealTimeManager()
 
 
-
+        btnRegresar.setOnClickListener{
+            finish()
+        }
 
         lifecycleScope.launch {
             realTimeManager.getGamesFlow().collect { games ->
@@ -45,6 +55,21 @@ class GamesActivity : AppCompatActivity() {
         }
 
         showGames()
+
+        val searchEditText = findViewById<EditText>(R.id.searchEditText)
+
+
+        searchEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                val query = s.toString()
+                filterGames(query)
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
     }
 
     private fun showGames() {
@@ -66,5 +91,36 @@ class GamesActivity : AppCompatActivity() {
         )
         recyclerView.adapter = gameAdapter
     }
+
+    private fun filterGames(query: String) {
+        val words = query.lowercase().split(" ")
+
+        var genreFilter: String? = null
+        var ratingFilter: Float? = null
+
+        for (word in words) {
+            val rating = word.toFloatOrNull()
+            if (rating != null) {
+                ratingFilter = rating
+            } else {
+                genreFilter = word
+            }
+        }
+
+        val filtered = gameList.filter { game ->
+            val matchesGenre = genreFilter?.let {
+                game.genre.lowercase().contains(it)
+            } ?: true
+
+            val matchesRating = ratingFilter?.let {
+                game.rating >= it
+            } ?: true
+
+            matchesGenre && matchesRating
+        }
+
+        gameAdapter.updateGames(filtered)
+    }
+
 
 }

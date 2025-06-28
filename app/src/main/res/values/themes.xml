@@ -5,5 +5,14 @@
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
+    <style name="SearchViewDarkStyle" parent="Widget.AppCompat.SearchView">
+        <item name="queryHint">Buscar por género</item>
+        <item name="android:textColorHint">#B0B0B0</item> <!-- Gris claro -->
+        <item name="android:textColor">#FFFFFF</item>     <!-- Blanco -->
+        <item name="android:background">#222222</item>    <!-- Fondo oscuro -->
+    </style>
+
+
+
     <style name="Theme.App_s10" parent="Base.Theme.App_s10" />
 </resources>

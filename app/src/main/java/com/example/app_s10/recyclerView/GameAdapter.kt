@@ -16,6 +16,8 @@ class GameAdapter(
     private val onEditClick: (Game) -> Unit
 ) : RecyclerView.Adapter<GameAdapter.GameViewHolder>() {
 
+    private var originalGames: List<Game> = games.toList() // copia original para filtrar
+
     inner class GameViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val tvTitle: TextView = itemView.findViewById(R.id.tvGameTitle)
         val tvGenre: TextView = itemView.findViewById(R.id.tvGameGenre)
@@ -49,7 +51,19 @@ class GameAdapter(
     override fun getItemCount(): Int = games.size
 
     fun updateGames(newGames: List<Game>) {
+        originalGames = newGames.toList()
         games = newGames
+        notifyDataSetChanged()
+    }
+
+    fun filterByGenre(query: String) {
+        games = if (query.isBlank()) {
+            originalGames
+        } else {
+            originalGames.filter {
+                it.genre.contains(query, ignoreCase = true)
+            }
+        }
         notifyDataSetChanged()
     }
 }
