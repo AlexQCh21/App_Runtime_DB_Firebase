@@ -13,6 +13,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.app_s10.utils.AuthManager
 import com.example.app_s10.views.FormularioDialogFragment
+import com.example.app_s10.views.GamesActivity
 import com.example.app_s10.views.LoginActivity
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -31,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cardStats: CardView
     private lateinit var cardAchievements: CardView
     private lateinit var cardProfile: CardView
+    private lateinit var cardGames: CardView
     private lateinit var cardSettings: CardView
     private lateinit var btn_add: FloatingActionButton
 
@@ -79,6 +81,7 @@ class MainActivity : AppCompatActivity() {
         btnLogout = findViewById(R.id.btn_logout)
         btn_add = findViewById(R.id.fbtn_add_game)
         cardStats = findViewById(R.id.card_stats)
+        cardGames = findViewById(R.id.card_misJuegos)
         cardAchievements = findViewById(R.id.card_achievements)
         cardProfile = findViewById(R.id.card_profile)
         cardSettings = findViewById(R.id.card_settings)
@@ -143,6 +146,11 @@ class MainActivity : AppCompatActivity() {
         
         cardSettings.setOnClickListener {
             showFeatureComingSoon("Configuración")
+        }
+
+        cardGames.setOnClickListener {
+            val intent = Intent(this, GamesActivity::class.java)
+            startActivity(intent)
         }
     }
     

@@ -75,5 +75,8 @@
         <item>Android</item>
         <item>iOS</item>
     </string-array>
+
+<!--    Texto del año-->
+    <string name="lanzamiento"><b>Lanzamiento: </b></string>
 </resources>
 
