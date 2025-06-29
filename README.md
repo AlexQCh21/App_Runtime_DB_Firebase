@@ -1,4 +1,4 @@
-# 🎮 App de Gestión de Juegos - Android
+# 🎮 App de Gestión de Juegos - GameVault
 
 Una aplicación móvil desarrollada en **Kotlin** que permite a los usuarios gestionar una colección de videojuegos. La app ofrece una experiencia intuitiva para agregar, editar, eliminar y buscar juegos usando Firebase como backend.
 
